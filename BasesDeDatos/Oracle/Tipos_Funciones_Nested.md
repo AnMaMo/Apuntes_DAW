@@ -54,10 +54,12 @@ update votants_taula set votat=0 where nom = 'pinlin';
   
 
 ## CREAR TAULA AMB **REFERENCIES**,  **INSERTS** I **CRIDAR-LOS**
-
+  
+Creem una taula amb un atribut que es tipus votant_typ, i fara referencia a un valor de la taula votants_taula 
+(una persona existent a la taula votants_taula)
+  
 ```sql
-  -- Creem una taula amb un atribut que es tipus votant_typ, i fara referencia a un valor de la taula votants_taula 
-  --(una persona existent a la taula votants_taula)
+  -- 
 create table seccions_taula(
     persona ref votant_typ references votants_taula,
     codiPostal number,
