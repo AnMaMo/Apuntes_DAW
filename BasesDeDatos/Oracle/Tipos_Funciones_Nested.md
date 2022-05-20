@@ -1,6 +1,6 @@
 # Oracle Tipus, Funcions de tipus, Herencia i Taules niuades
   
-Creem l'objecte **Votant** amb una funcio que retornarà si ha votat o no
+## Creem l'objecte **Votant** amb una funcio que retornarà si ha votat o no
   
 ```sql
 create type votant_typ as object (
@@ -28,7 +28,7 @@ end;
   
   
   
-Ara crearem una taula amb el tipus **votants** que hem creat anteriorment
+## Ara crearem una taula amb el tipus **votants** que hem creat anteriorment
 
 ```sql
 create table votants_taula of votant_typ;
@@ -41,7 +41,7 @@ INSERT INTO votants_taula values (votant_typ('11111113', 'marcos', 'garcia', 1))
   
   
 
-SELECTS amb crides de funcio | **Taula objecte**
+## SELECTS amb crides de funcio | **Taula objecte**
 
 ```sql
 -- es una select normal pero a l'hora de cridar la funcio hem de cridar a l'atribut amb el "diminutiu" de la taula "votants_taula v".
@@ -53,7 +53,7 @@ update votants_taula set votat=0 where nom = 'pinlin';
   
   
 
-CREAR TAULA AMB **REFERENCIES**,  **INSERTS** I **CRIDAR-LOS**
+## CREAR TAULA AMB **REFERENCIES**,  **INSERTS** I **CRIDAR-LOS**
 
 ```sql
   -- Creem una taula amb un atribut que es tipus votant_typ, i fara referencia a un valor de la taula votants_taula 
@@ -97,7 +97,7 @@ select deref(persona).dni, deref(persona).nom, deref(persona).cognoms, deref(per
   
   
 
-COLECCIONS I TAULES NIUADES
+## COLECCIONS I TAULES NIUADES
   
 Primer de tot creem el tipus membre per poder guardar membres
   
