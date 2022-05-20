@@ -50,7 +50,7 @@ select dni, nom, cognoms, v.jaHeVotat() from votants_taula v;
 -- Si fem un update podem tornar a fer el select i veurem com ja ha canviat el seu vot
 update votants_taula set votat=0 where nom = 'pinlin';
 ```
-  
+# 
   
 
 ## CREAR TAULA AMB **REFERENCIES**,  **INSERTS** I **CRIDAR-LOS**
