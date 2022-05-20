@@ -163,3 +163,80 @@ DBMS_OUTPUT.PUT_LINE(colegi_var || numeroMesa_var ||' '||persona(i).dni||' '|| p
 end loop;
 end;       
 ```
+
+##HERENCIES
+```sql
+create type politic_typ as object(
+dni varchar2(9),
+nom varchar2(20),
+cognoms varchar2(40),
+nomPartit varchar2(40),
+member function getNomPartit return varchar2)not final;
+
+
+create or replace type body politic_typ as
+member function getnompartit return varchar2 is
+begin
+return nomPartit;
+end;
+end;
+
+-- Tipus heredat de politic
+create or replace type diputat_estatal_typ under politic_typ(
+data_afiliacio date,
+member function anys_en_el_partit return number) not final;
+
+-- Editem la funcio
+create type body diputat_estatal_typ as
+member function anys_en_el_partit return number is
+begin
+return extract(YEAR from sysdate) - extract(YEAR from data_afiliacio);
+end;
+end;
+
+-- Creem un nou tipus de diputat herencia de la herencia
+create type diputat_estatal_ministres_typ under diputat_estatal_typ(
+data_inici_mandat date,
+cartera varchar2(40),member
+function dies_carrec return number
+)not final;
+
+-- Editem la funció
+create type body diputat_estatal_ministres_typ as
+member function dies_carrec return number is
+num_dies number;
+begin
+select trunc(sysdate)-trunc(to_date(data_inici_mandat,'DD/MM/YYYY hh24:mi:ss')) into num_dies from dual;
+return num_dies;
+end;
+end;
+
+--
+create type politic_local_typ under politic_typ(
+poblacio_on_exerceix varchar2(40),
+carreg varchar2(40)
+);
+
+
+-- Ara crearem una taula on podrem guardar cualsevol tipus de politic
+-- ja que si creem una taula de tipus, en ella podrem guardar cualsevol tipus de tipus fill
+create table politics of politic_typ; 
+
+
+--Inserir dades a la taula de tipus heredats amb el tipus fill que volguem ja que al ser de tipus pare podem guardar el tipus fill que volem
+insert into politics values(diputat_estatal_ministres_typ('11111111a','pedro', 'sanchez', 'PSOE', '01/02/2002', '01/02/2005', 'chorizo'));
+
+-- com que per defecte es tipus pare, els atributs del tipus fill encara no surten
+select * from politics;
+
+-- per fer-ho hem de fer un bloc anonim
+set serveroutput on;
+declare
+poli politic_typ;
+ministre diputat_estatal_ministres_typ; -- aqui guardarem el nostre ministre, que encara es de tipus pare i el pasarem a tipus fill
+begin
+select value(p) into poli from politics p where p.dni = '11111111a';
+ministre:= treat(poli as diputat_estatal_ministres_typ); -- convertim el tipus de politic a ministre que es el fill
+DBMS_OUTPUT.PUT_LINE(ministre.cartera);
+end;
+```
