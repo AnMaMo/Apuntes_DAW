@@ -1,117 +1,97 @@
-# Oracle Objecte-Relacional - Els animals - Taula d'objectes
-## DAW-MP02-UF4 - Exercici de Bases de dades objectes-relacionals
-Crea l'objecte **Animal** i la taula d'objectes **Animals**.
+# Oracle Tipus, Funcions de tipus, Herencia i Taules niuades
 
-Un animal té les següents propietats:
+Creem l'objecte **Votant** amb una funcio que retornarà si ha votat o no
 
-* Nom
-* Número de Potes
-* Alçada
-* Fressa
-
-I els següents mètodes
-
-* Parla  ( que per ara retorna per consola el contingut de Fressa )
-
-Inserta 4 animals a la taula d'animals: Gallina, Conill, Velociraptor, Unicorn.
-
-Crea la taula **Zoo**. Aquesta taula contindrà els següents camps:
-
-* Chip ( clau primària )
-* Referència a animal
-* Data entrada al zoo
-* Data defunció ( pot ser null )
-
-Inserta la Gallina amb número de Chip '343242454' i el Velociraptor amb número de Chip '9695844'.
-
-Escriu un tall de codi per a fer parlar el Velociraptor.
-
-**Ajuda per a fer l'exercici**
-
-```SQL
---CREACIÓ DEL TIPUS ANIMAL:
-CREATE TYPE animal AS OBJECT (
-    nom VARCHAR(20),
-    potes NUMBER,
-    alsada NUMBER(5,2),
-    fressa VARCHAR(40),
-    MEMBER FUNCTION parla RETURN VARCHAR2);
-/
-CREATE OR REPLACE TYPE BODY animal AS
-    MEMBER FUNCTION parla RETURN VARCHAR2 IS
-    BEGIN
-        RETURN fressa;
-    END;
-END;
-/
-
---Crear taula d’animals:
-CREATE TABLE animals OF animal;
-
---Inserir animals:
-INSERT INTO animals VALUES(
-  animal('Gallina', 2, 26.9, 'COCOCOCOC'));
-INSERT INTO animals VALUES(
-  animal('Conill', 4, 24.7, 'CRCRCRCR'));
-INSERT INTO animals VALUES(
-  animal('Velociraptor', 4, 316.1, 'TEKTEKTEKT'));
-INSERT INTO animals VALUES(
-  animal('Unicorn', 4, 145.9, 'BBBRRRR'));
-
---Crear taula zoo:
-CREATE TABLE zoo (
-  chip NUMBER PRIMARY KEY,
-  animal REF animal,
-  dataEntrada DATE,
-  dataDefuncio DATE NULL);
-
---Inserir la gallina al zoo:
-DECLARE
-  anim REF animal;
-BEGIN
-  SELECT REF(p) INTO anim FROM animals p WHERE p.nom = 'Gallina';
-  INSERT INTO zoo VALUES (
-    343242454, anim, '24 Jun 1998', NULL);
-END;
-
---Inserir el Velociraptor al zoo:
-DECLARE
-  anim REF animal;
-BEGIN
-  SELECT REF(p) INTO anim FROM animals p WHERE p.nom = 'Velociraptor';
-  INSERT INTO zoo VALUES (
-    9695844, anim, '24 Jun 2003', NULL);
-END;
-
---Fer cridar el Velociraptor:
-set serveroutput on;
-exec DBMS_OUTPUT.ENABLE;
-DECLARE
-  anim animal;
-BEGIN
-  SELECT value(p) INTO anim FROM animals p WHERE p.nom = 'Velociraptor';
-  --SELECT deref(ref(p)) INTO anim FROM animals p WHERE p.nom = 'Velociraptor';
-  DBMS_OUTPUT.PUT_LINE(anim.parla());
-END;
+```sql
+create type votant_typ as object (
+    dni varchar2(9),
+    nom varchar2(20),
+    cognoms varchar2(40),
+    votat number,
+    member function jaHeVotat return varchar2
+);
 ```
 
-    --des del zoo:
-    DECLARE
-      anim animal;
-    BEGIN
-      SELECT deref(z.animal) INTO anim 
-      FROM zoo z WHERE z.animal.nom = 'Velociraptor';
-      DBMS_OUTPUT.PUT_LINE(anim.parla());
-    END;
+Ara editarem la funcio **jaHeVotat** i farem que miri si el seu vot es 1 o 0
 
----
+```sql
+create or replace type body votant_typ as -- aqui posem el nom del tipus.
+member function jaHeVotat return varchar2 is -- i aqui el nom de la funcio.
+    begin
+        if votat = 1 then
+            return 'Ja ha votat'; -- si el seu atriubut votat es 1 retornara que ha votat.
+        end if;
+        return 'No ha votat encara'; -- si el seu atriubut votat es 0 retornara que no ha votat.
+    end;
+end;
+```
 
-#FpInfor #Daw #DawMp02 #DawMp02Uf04
 
-* Resultats d'aprenentatge 1.B 1.C 1.F 1.G
-* Continguts 1.1 1.3 1.4 1.8 1.9 1.10
----
+Ara crearem una taula amb el tipus **votants** que hem creat anteriorment
 
-###### Autor: daniel herrera 2014.03.31 17:08:49
-###### Editat per: daniel herrera 2018.04.10 13:01:14
-###### [CC BY](https://creativecommons.org/licenses/by/4.0/) ![CC BY](https://licensebuttons.net/l/by/3.0/80x15.png)
+```sql
+create table votants_taula of votant_typ;
+
+-- Inserirem dades a la taula utilitzant el tipus, ja que és una taula de tipus objecte
+INSERT INTO votants_taula values (votant_typ('11111111', 'juan', 'perez', 0));
+INSERT INTO votants_taula values (votant_typ('11111112', 'jose', 'maria', 1));
+INSERT INTO votants_taula values (votant_typ('11111113', 'marcos', 'garcia', 1));
+```
+
+
+SELECTS amb crides de funcio | **Taula objecte**
+
+```sql
+-- es una select normal pero a l'hora de cridar la funcio hem de cridar a l'atribut amb el "diminutiu" de la taula "votants_taula v".
+select dni, nom, cognoms, v.jaHeVotat() from votants_taula v;
+
+-- Si fem un update podem tornar a fer el select i veurem com ja ha canviat el seu vot
+update votants_taula set votat=0 where nom = 'pinlin';
+```
+
+
+CREAR TAULA AMB **REFERENCIES**,  **INSERTS** I **CRIDAR-LOS**
+
+```sql
+  -- Creem una taula amb un atribut que es tipus votant_typ, i fara referencia a un valor de la taula votants_taula 
+  --(una persona existent a la taula votants_taula)
+create table seccions_taula(
+    persona ref votant_typ references votants_taula,
+    codiPostal number,
+    colegi varchar2(40),
+    mesaElectoral number
+);
+```
+
+Ara el que fem es un **insert**, pero per aixo hem **d'agafar** un objecte de la taula votants, ja que com es una referencia
+li hem de pasar un objecte existent
+
+```sql
+declare
+votant_varRef ref votant_typ; --Crearem una variable que sera una referencia del tipus votant_typ
+begin
+--Guardarem el resultat de la select, que en aquest cas es una referencia "ref(v)" a la variable que hem creat
+SELECT ref(v) into votant_varRef from votants_taula v where nom = 'andre';
+
+-- Farem el insert i li pasarem la referencia (variable) en l'atribut de la taula que era una referencia de la taula votants_taula
+INSERT INTO seccions_taula values (votant_varRef, 17469, 'cendrassos', 1);
+
+--Es poden fer més d'un insert en un mateix bloc anonim utilitzant la mateixa variable fent
+  -- SELECT -> guardo variable
+  -- INSERT -> a taula
+  -- SELECT -> guardo variable
+  -- INSERT -> a taula
+
+end;
+```
+
+Per accedir als **atributs** del atribut **persona** de la taula seccions utilitzem deref(atribut).atributdeobjecte, i per les seves funcions el mateix pero acaba en ()
+
+```sql
+-- El que fem aqui es agafar tots els atributs de les persones de la taula seccions_taula i mirar si han votat o no amb la seva funcio
+select deref(persona).dni, deref(persona).nom, deref(persona).cognoms, deref(persona).jaHeVotat() from seccions_taula;
+```
+
+
+COLECCIONS I TAULES NIUADES
+
